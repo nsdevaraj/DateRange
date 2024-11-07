@@ -15,6 +15,30 @@
   margin-bottom: 1.5rem;
 }
 
+.header-controls {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.view-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.375rem;
+  background-color: white;
+  font-size: 0.875rem;
+  color: #4b5563;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.view-toggle:hover {
+  border-color: #9ca3af;
+}
+
 .title {
   font-size: 1.25rem;
   font-weight: 600;
@@ -98,8 +122,17 @@
 
 .calendars-container {
   display: grid;
-  grid-template-columns: 1fr 1fr;
   gap: 2rem;
+}
+
+.calendars-container.dual {
+  grid-template-columns: 1fr 1fr;
+}
+
+.calendars-container.single {
+  grid-template-columns: 1fr;
+  max-width: 28rem;
+  margin: 0 auto;
 }
 
 .calendar {

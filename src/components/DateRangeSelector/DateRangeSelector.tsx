@@ -26,6 +26,7 @@ export default function DateRangeSelector() {
   const [leftMonth, setLeftMonth] = useState(new Date());
   const [rightMonth, setRightMonth] = useState(new Date(new Date().setMonth(new Date().getMonth() + 1)));
   const [selectedRange, setSelectedRange] = useState<string>('1');
+  const [isDualView, setIsDualView] = useState(true);
 
   const addNewRange = () => {
     if (ranges.length >= COLORS.length) return;
@@ -119,9 +120,11 @@ export default function DateRangeSelector() {
     const newDate = new Date(leftMonth.getFullYear(), leftMonth.getMonth() + (direction === 'next' ? 1 : -1));
     setLeftMonth(newDate);
 
-    // Ensure right month is always ahead
-    if (newDate >= rightMonth) {
-      setRightMonth(new Date(newDate.getFullYear(), newDate.getMonth() + 1));
+    if (isDualView) {
+      // Ensure right month is always ahead
+      if (newDate >= rightMonth) {
+        setRightMonth(new Date(newDate.getFullYear(), newDate.getMonth() + 1));
+      }
     }
   };
 
@@ -139,9 +142,11 @@ export default function DateRangeSelector() {
     const newDate = new Date(year, leftMonth.getMonth());
     setLeftMonth(newDate);
 
-    // Ensure right month is always ahead
-    if (newDate >= rightMonth) {
-      setRightMonth(new Date(year, newDate.getMonth() + 1));
+    if (isDualView) {
+      // Ensure right month is always ahead
+      if (newDate >= rightMonth) {
+        setRightMonth(new Date(year, newDate.getMonth() + 1));
+      }
     }
   };
 
@@ -155,15 +160,24 @@ export default function DateRangeSelector() {
     }
   };
 
+  const toggleView = () => {
+    setIsDualView(!isDualView);
+  };
+
   return (
     <div className="date-range-selector">
       <div className="header">
         <h2 className="title">Date Ranges</h2>
-        {ranges.length < COLORS.length && (
-          <button className="add-button" onClick={addNewRange} title="Add new range">
-            {"+"}
+        <div className="header-controls">
+          <button className="view-toggle" onClick={toggleView}>
+            {isDualView ? 'Single Calendar' : 'Dual Calendar'}
           </button>
-        )}
+          {ranges.length < COLORS.length && (
+            <button className="add-button" onClick={addNewRange} title="Add new range">
+              {"+"}
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="ranges">
@@ -180,7 +194,7 @@ export default function DateRangeSelector() {
         ))}
       </div>
 
-      <div className="calendars-container">
+      <div className={`calendars-container ${isDualView ? 'dual' : 'single'}`}>
         <Calendar
           currentMonth={leftMonth}
           onPrevMonth={() => handleLeftMonthChange('prev')}
@@ -193,18 +207,20 @@ export default function DateRangeSelector() {
           ranges={ranges}
           onYearChange={handleLeftYearChange}
         />
-        <Calendar
-          currentMonth={rightMonth}
-          onPrevMonth={() => handleRightMonthChange('prev')}
-          onNextMonth={() => handleRightMonthChange('next')}
-          onSelectDay={(day) => handleDateClick(day, false)}
-          getDaysInMonth={getDaysInMonth}
-          isDateInRange={(day, rangeId) => isDateInRange(day, rangeId, false)}
-          isDateStart={(day, rangeId) => isDateStart(day, rangeId, false)}
-          isDateEnd={(day, rangeId) => isDateEnd(day, rangeId, false)}
-          ranges={ranges}
-          onYearChange={handleRightYearChange}
-        />
+        {isDualView && (
+          <Calendar
+            currentMonth={rightMonth}
+            onPrevMonth={() => handleRightMonthChange('prev')}
+            onNextMonth={() => handleRightMonthChange('next')}
+            onSelectDay={(day) => handleDateClick(day, false)}
+            getDaysInMonth={getDaysInMonth}
+            isDateInRange={(day, rangeId) => isDateInRange(day, rangeId, false)}
+            isDateStart={(day, rangeId) => isDateStart(day, rangeId, false)}
+            isDateEnd={(day, rangeId) => isDateEnd(day, rangeId, false)}
+            ranges={ranges}
+            onYearChange={handleRightYearChange}
+          />
+        )}
       </div>
     </div>
   );
