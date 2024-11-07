@@ -67,24 +67,24 @@ export function Calendar({
       <div className="days">
         {Array.from({ length: firstDay }).map((_, index) => (
           <button key={`prev-${index}`} className="day disabled">
-            {prevMonthDays - firstDay + index + 1}
+            <span className="day-number">{prevMonthDays - firstDay + index + 1}</span>
           </button>
         ))}
 
         {Array.from({ length: days }).map((_, index) => {
           const day = index + 1;
-          const isSelected = ranges.some(
-            range =>
-              isDateStart(day, range.id) ||
-              isDateEnd(day, range.id) ||
-              isDateInRange(day, range.id)
-          );
+          const classes = ['day'];
+
+          ranges.forEach(range => {
+            if (isDateStart(day, range.id)) classes.push('range-start');
+            if (isDateEnd(day, range.id)) classes.push('range-end');
+          });
 
           return (
             <button
               key={day}
               onClick={() => onSelectDay(day)}
-              className={`day ${isSelected ? 'selected' : ''}`}
+              className={classes.join(' ')}
             >
               {ranges.map(range => {
                 if (
