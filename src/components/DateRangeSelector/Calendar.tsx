@@ -11,6 +11,7 @@ interface CalendarProps {
   isDateStart: (day: number, rangeId: string) => boolean;
   isDateEnd: (day: number, rangeId: string) => boolean;
   ranges: Array<{ id: string; color: string }>;
+  onYearChange: (year: number) => void;
 }
 
 export function Calendar({
@@ -22,7 +23,8 @@ export function Calendar({
   isDateInRange,
   isDateStart,
   isDateEnd,
-  ranges
+  ranges,
+  onYearChange
 }: CalendarProps) {
   const { days, firstDay } = getDaysInMonth(currentMonth);
   const prevMonthDays = new Date(
@@ -31,6 +33,8 @@ export function Calendar({
     0
   ).getDate();
 
+  const years = Array.from({ length: 20 }, (_, i) => new Date().getFullYear() - 10 + i);
+
   return (
     <div className="calendar">
       <div className="calendar-header">
@@ -38,10 +42,16 @@ export function Calendar({
           {"<"}
         </button>
         <div className="current-month">
-          {currentMonth.toLocaleDateString('en-US', {
-            month: 'long',
-            year: 'numeric'
-          })}
+          <span>{currentMonth.toLocaleDateString('en-US', { month: 'long' })}</span>
+          <select
+            value={currentMonth.getFullYear()}
+            onChange={(e) => onYearChange(parseInt(e.target.value))}
+            className="year-select"
+          >
+            {years.map(year => (
+              <option key={year} value={year}>{year}</option>
+            ))}
+          </select>
         </div>
         <button className="nav-button" onClick={onNextMonth}>
           {">"}

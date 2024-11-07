@@ -23,7 +23,8 @@ export default function DateRangeSelector() {
   const [ranges, setRanges] = useState<DateRangeType[]>([
     { id: '1', startDate: null, endDate: null, color: COLORS[0] }
   ]);
-  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [leftMonth, setLeftMonth] = useState(new Date());
+  const [rightMonth, setRightMonth] = useState(new Date(new Date().setMonth(new Date().getMonth() + 1)));
   const [selectedRange, setSelectedRange] = useState<string>('1');
 
   const addNewRange = () => {
@@ -61,10 +62,10 @@ export default function DateRangeSelector() {
     });
   };
 
-  const handleDateClick = (day: number) => {
+  const handleDateClick = (day: number, isLeftCalendar: boolean) => {
     const clickedDate = new Date(
-      currentMonth.getFullYear(),
-      currentMonth.getMonth(),
+      isLeftCalendar ? leftMonth.getFullYear() : rightMonth.getFullYear(),
+      isLeftCalendar ? leftMonth.getMonth() : rightMonth.getMonth(),
       day
     );
 
@@ -83,10 +84,10 @@ export default function DateRangeSelector() {
     }));
   };
 
-  const isDateInRange = (day: number, rangeId: string) => {
+  const isDateInRange = (day: number, rangeId: string, isLeftCalendar: boolean) => {
     const date = new Date(
-      currentMonth.getFullYear(),
-      currentMonth.getMonth(),
+      isLeftCalendar ? leftMonth.getFullYear() : rightMonth.getFullYear(),
+      isLeftCalendar ? leftMonth.getMonth() : rightMonth.getMonth(),
       day
     );
     const range = ranges.find(r => r.id === rangeId);
@@ -94,24 +95,64 @@ export default function DateRangeSelector() {
     return date >= range.startDate && date <= range.endDate;
   };
 
-  const isDateStart = (day: number, rangeId: string) => {
+  const isDateStart = (day: number, rangeId: string, isLeftCalendar: boolean) => {
     const date = new Date(
-      currentMonth.getFullYear(),
-      currentMonth.getMonth(),
+      isLeftCalendar ? leftMonth.getFullYear() : rightMonth.getFullYear(),
+      isLeftCalendar ? leftMonth.getMonth() : rightMonth.getMonth(),
       day
     ).getTime();
     const range = ranges.find(r => r.id === rangeId);
     return range?.startDate?.getTime() === date;
   };
 
-  const isDateEnd = (day: number, rangeId: string) => {
+  const isDateEnd = (day: number, rangeId: string, isLeftCalendar: boolean) => {
     const date = new Date(
-      currentMonth.getFullYear(),
-      currentMonth.getMonth(),
+      isLeftCalendar ? leftMonth.getFullYear() : rightMonth.getFullYear(),
+      isLeftCalendar ? leftMonth.getMonth() : rightMonth.getMonth(),
       day
     ).getTime();
     const range = ranges.find(r => r.id === rangeId);
     return range?.endDate?.getTime() === date;
+  };
+
+  const handleLeftMonthChange = (direction: 'prev' | 'next') => {
+    const newDate = new Date(leftMonth.getFullYear(), leftMonth.getMonth() + (direction === 'next' ? 1 : -1));
+    setLeftMonth(newDate);
+
+    // Ensure right month is always ahead
+    if (newDate >= rightMonth) {
+      setRightMonth(new Date(newDate.getFullYear(), newDate.getMonth() + 1));
+    }
+  };
+
+  const handleRightMonthChange = (direction: 'prev' | 'next') => {
+    const newDate = new Date(rightMonth.getFullYear(), rightMonth.getMonth() + (direction === 'next' ? 1 : -1));
+    setRightMonth(newDate);
+
+    // Ensure left month is always behind
+    if (newDate <= leftMonth) {
+      setLeftMonth(new Date(newDate.getFullYear(), newDate.getMonth() - 1));
+    }
+  };
+
+  const handleLeftYearChange = (year: number) => {
+    const newDate = new Date(year, leftMonth.getMonth());
+    setLeftMonth(newDate);
+
+    // Ensure right month is always ahead
+    if (newDate >= rightMonth) {
+      setRightMonth(new Date(year, newDate.getMonth() + 1));
+    }
+  };
+
+  const handleRightYearChange = (year: number) => {
+    const newDate = new Date(year, rightMonth.getMonth());
+    setRightMonth(newDate);
+
+    // Ensure left month is always behind
+    if (newDate <= leftMonth) {
+      setLeftMonth(new Date(year, newDate.getMonth() - 1));
+    }
   };
 
   return (
@@ -139,17 +180,32 @@ export default function DateRangeSelector() {
         ))}
       </div>
 
-      <Calendar
-        currentMonth={currentMonth}
-        onPrevMonth={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1))}
-        onNextMonth={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1))}
-        onSelectDay={handleDateClick}
-        getDaysInMonth={getDaysInMonth}
-        isDateInRange={isDateInRange}
-        isDateStart={isDateStart}
-        isDateEnd={isDateEnd}
-        ranges={ranges}
-      />
+      <div className="calendars-container">
+        <Calendar
+          currentMonth={leftMonth}
+          onPrevMonth={() => handleLeftMonthChange('prev')}
+          onNextMonth={() => handleLeftMonthChange('next')}
+          onSelectDay={(day) => handleDateClick(day, true)}
+          getDaysInMonth={getDaysInMonth}
+          isDateInRange={(day, rangeId) => isDateInRange(day, rangeId, true)}
+          isDateStart={(day, rangeId) => isDateStart(day, rangeId, true)}
+          isDateEnd={(day, rangeId) => isDateEnd(day, rangeId, true)}
+          ranges={ranges}
+          onYearChange={handleLeftYearChange}
+        />
+        <Calendar
+          currentMonth={rightMonth}
+          onPrevMonth={() => handleRightMonthChange('prev')}
+          onNextMonth={() => handleRightMonthChange('next')}
+          onSelectDay={(day) => handleDateClick(day, false)}
+          getDaysInMonth={getDaysInMonth}
+          isDateInRange={(day, rangeId) => isDateInRange(day, rangeId, false)}
+          isDateStart={(day, rangeId) => isDateStart(day, rangeId, false)}
+          isDateEnd={(day, rangeId) => isDateEnd(day, rangeId, false)}
+          ranges={ranges}
+          onYearChange={handleRightYearChange}
+        />
+      </div>
     </div>
   );
 }
